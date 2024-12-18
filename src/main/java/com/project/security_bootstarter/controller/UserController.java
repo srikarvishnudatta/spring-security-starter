@@ -1,8 +1,8 @@
 package com.project.security_bootstarter.controller;
 
 
+import com.project.security_bootstarter.dto.LoginDto;
 import com.project.security_bootstarter.model.MyUser;
-import com.project.security_bootstarter.service.JwtService;
 import com.project.security_bootstarter.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,11 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class UserController {
     private final UserService userService;
-    private final JwtService jwtService;
 
-    public UserController(UserService userService, JwtService jwtService) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.jwtService = jwtService;
     }
 
     @GetMapping("/hello")
@@ -27,13 +25,15 @@ public class UserController {
     }
 
     @PostMapping("/auth/login")
-    public ResponseEntity<String> loginUser(@RequestBody MyUser user){
-        return new ResponseEntity<>(this.jwtService.generateToken(user), HttpStatus.OK);
+    public ResponseEntity<String> loginUser(@RequestBody LoginDto user) {
+        var response = this.userService.loginUser(user);
+        if (response.isEmpty()) return ResponseEntity.status(404).body("No user");
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/auth/create")
     public ResponseEntity<String> createUser(@RequestBody MyUser user){
         this.userService.createUser(user);
-        return new ResponseEntity<>(this.jwtService.generateToken(user), HttpStatus.CREATED);
+        return new ResponseEntity<>("User Created", HttpStatus.CREATED);
     }
 }
